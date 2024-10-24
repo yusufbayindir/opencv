@@ -20,6 +20,41 @@ cv::Mat addTextToImage(const cv::Mat& image, const std::string& text, cv::Point 
     return newImage;
 }
 
+cv::Mat applySobelFilter(const cv::Mat& image, int dx, int dy, int kernelSize) {
+    if (image.empty()) {
+        NSLog(@"Error: Input image is empty");
+        return cv::Mat();
+    }
+
+    cv::Mat grayImage, gradImage;
+
+    // Eğer görüntü renkli ise gri tonlamaya çevir
+    if (image.channels() == 3) {
+        cv::cvtColor(image, grayImage, cv::COLOR_BGR2GRAY);
+    } else {
+        grayImage = image.clone();
+    }
+
+    // Sobel filtresini uygula
+    cv::Sobel(grayImage, gradImage, CV_64F, dx, dy, kernelSize);
+
+    // CV_64F -> CV_8UC1 dönüştür
+    cv::Mat absGradImage;
+    cv::convertScaleAbs(gradImage, absGradImage);
+
+    if (absGradImage.empty()) {
+        NSLog(@"Error: Sobel filtered image is empty");
+        return cv::Mat();
+    }
+
+    // Sonucu RGBA formatına çevir
+    cv::Mat resultImage;
+    cv::cvtColor(absGradImage, resultImage, cv::COLOR_GRAY2RGBA);
+
+    return resultImage;
+}
+
+
 #import "Opencv.h"
 #import <Foundation/Foundation.h>
 #import <vector>
@@ -48,6 +83,25 @@ cv::Mat addTextToImage(const cv::Mat& image, const std::string& text, cv::Point 
     // Sonuç olarak işlenmiş cv::Mat'i tekrar UIImage'a dönüştür
     return [self UIImageFromCVMat:resultImage];
 }
+
++ (UIImage *)applySobelToUIImage:(UIImage *)image
+                              dx:(int)dx
+                              dy:(int)dy
+                      kernelSize:(int)kernelSize {
+    // UIImage -> cv::Mat dönüştürme
+    cv::Mat cvImage = [self cvMatFromUIImage:image];
+    
+    // Sobel filtresini uygula
+    cv::Mat resultImage = applySobelFilter(cvImage, dx, dy, kernelSize);
+    if (resultImage.empty()) {
+        NSLog(@"Error: Resulting cv::Mat is empty after Sobel filter");
+        return nil;
+    }
+
+    // Sonuç olarak işlenmiş cv::Mat'i tekrar UIImage'a dönüştür
+    return [self UIImageFromCVMat:resultImage];
+}
+
 
 // UIImage'ı cv::Mat formatına çevirme
 + (cv::Mat)cvMatFromUIImage:(UIImage *)image {

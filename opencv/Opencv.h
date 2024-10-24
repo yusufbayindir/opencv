@@ -21,6 +21,10 @@ NS_ASSUME_NONNULL_BEGIN
                     thickness:(int)thickness
                      lineType:(int)lineType;
 
++ (UIImage *)applySobelToUIImage:(UIImage *)image
+                              dx:(int)dx
+                              dy:(int)dy
+                      kernelSize:(int)kernelSize;
 @end
 
 NS_ASSUME_NONNULL_END

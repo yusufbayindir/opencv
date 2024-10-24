@@ -64,6 +64,12 @@ struct ContentView: View {
                 
                 Button(action: {
                     // İkinci butonun etkisi
+                    if let image = selectedImage {
+                        let newImage = Opencv.applySobel(to: image, dx: 1, dy: 0, kernelSize: 3)
+                        
+                       selectedImage = newImage // Değiştirilmiş resmi güncelle
+                       print("Resim üzerine yazı eklendi.")
+                   }
                     print("İkinci buton tıklandı")
                 }) {
                     Text("Buton 2")
