@@ -48,7 +48,7 @@ struct ContentView: View {
                 Button(action: {
                     // İlk butonun etkisi
                     if let image = selectedImage {
-                       let newImage = Opencv.addText(to: image, text: "Yusuf", position: CGPoint(x: 150, y: 150), fontFace: 4, fontScale: 5, color: UIColor.black, thickness: 4, lineType: 2)
+                        let newImage = Opencv.addText(to: image, text: "Yusuf", position: CGPoint(x: 150, y: 150), fontFace: 4, fontScale: 5, color: UIColor.black, thickness: 4, lineType: 2)
                         
                        selectedImage = newImage // Değiştirilmiş resmi güncelle
                        print("Resim üzerine yazı eklendi.")
@@ -64,7 +64,14 @@ struct ContentView: View {
                 
                 Button(action: {
                     // İkinci butonun etkisi
-                    print("İkinci buton tıklandı")
+                   
+                    if let image = selectedImage {
+                        let newImage = Opencv.applySobel(to: image, dx: 1, dy: 0, kernelSize: 3)
+                        
+                       selectedImage = newImage // Değiştirilmiş resmi güncelle
+                       print("Resim üzerine yazı eklendi.")
+                   }
+                    print("İkinci buton tıklandı.")
                 }) {
                     Text("Buton 2")
                         .padding()
@@ -75,6 +82,178 @@ struct ContentView: View {
                 
                 Button(action: {
                     // Üçüncü butonun etkisi
+                    
+//                    if let image = selectedImage {
+//                        let grayAndSize = Opencv.resizeAndGrayColor(image, to: CGSize(width: 200, height: 500))
+//                        selectedImage = grayAndSize
+//                        print("Resim gri rengine dönüştürüldü ve boyut değiştirildi.")
+//                    }
+//                    
+                    
+//                    if let image = selectedImage {
+//                        let borderImage = Opencv.makeBorder(with: image, top: 20, bottom: 20, left: 400, right: 400, borderType: 0, color: .red)
+//                        selectedImage = borderImage
+//                        print("border eklendi")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let flipImage = Opencv.flip(image, flipCode: 1)
+//                        selectedImage = flipImage
+//                        print("Resim çevrildi")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let filePath = NSTemporaryDirectory().appending(UUID().uuidString).appending(".png")
+//                        if Opencv.save(image, toFilePath: filePath) {
+//                            Opencv.saveImage(toGallery: image)
+//                            print("Resim galeriye kaydedildi.")
+//                        }
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let ellipse = Opencv.drawEllipse(on: image, center: CGPoint(x: 900, y: 900), axes: CGSize(width: 1000, height: 500), angle: 45, startAngle: 0, endAngle: 360, color: UIColor.red, thickness: 30)
+//                        selectedImage = ellipse
+//                        print("ellipse çizildi")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let lineImage = Opencv.drawLine(on: image, start: CGPoint(x: 50, y: 150), end: CGPoint(x: 4000, y: 4000), color: UIColor.red, thickness: 50)
+//                        selectedImage = lineImage
+//                        print("line çizildi")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let circleImage = Opencv.drawCircle(on: image, at: CGPoint(x: 2500, y: 1500), withRadius: 1500, andColor: UIColor.red, lineWidth: 10)
+//                        selectedImage = circleImage
+//                        print("circle çizildi")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let rectangleImage = Opencv.drawRectangle(on: image, from: CGPoint(x: 1200, y: 600), to: CGPoint(x: 200, y: 200), with: UIColor.red, lineWidth: 30)
+//                        selectedImage = rectangleImage
+//                        print("rectangle çizildi")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let points = [
+//                               NSValue(cgPoint: CGPoint(x: 800, y: 250)),
+//                               NSValue(cgPoint: CGPoint(x: 500, y: 250)),
+//                               NSValue(cgPoint: CGPoint(x: 500, y: 700)),
+//                               NSValue(cgPoint: CGPoint(x: 250, y: 600))
+//                           ]
+//                        let fillPolygon = Opencv.fillPolygon(on: image, withPoints: points, andColor: UIColor.red)
+//                        selectedImage = fillPolygon
+//                        print("polygon çizildi")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let points = [
+//                            NSValue(cgPoint: CGPoint(x: 800, y: 250)),
+//                            NSValue(cgPoint: CGPoint(x: 500, y: 250)),
+//                            NSValue(cgPoint: CGPoint(x: 500, y: 700)),
+//                            NSValue(cgPoint: CGPoint(x: 250, y: 600))
+//                        ]
+//                        
+//                        let polylinesImage = Opencv.drawPolylines(on: image, withPoints: points, andColor: UIColor.red, lineWidth: 30)
+//                        selectedImage = polylinesImage
+//                        print("polyline çizildi")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let center = Opencv.rotateImage(image, center: CGPoint(x: Int(image.size.width) / 2, y: Int(image.size.height) / 2), angle: 45, scale: 1)
+//                        selectedImage = center
+//                        print("Resim döndürüldü")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let warpMat : [NSNumber] = [1.0, 0.0, 100.0,
+//                                                    0.0, 1.0, 50.0]
+//                        let warpImage = Opencv.applyWarpAffine(to: image, matrix: warpMat)
+//                        selectedImage = warpImage
+//                        print("Resime warp işlemi uygulandı.")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let srcPoints: [CGPoint] = [
+//                                    CGPoint(x: 0, y: 0),
+//                                    CGPoint(x: image.size.width, y: 0),
+//                                    CGPoint(x: image.size.width, y: image.size.height),
+//                                    CGPoint(x: 0, y: image.size.height)
+//                                ]
+//
+//                                let dstPoints: [CGPoint] = [
+//                                    CGPoint(x: 50, y: 50),
+//                                    CGPoint(x: image.size.width - 50, y: 10),
+//                                    CGPoint(x: image.size.width - 30, y: image.size.height - 30),
+//                                    CGPoint(x: 10, y: image.size.height - 50)
+//                                ]
+//                        
+//                        let warpedImage = Opencv.warpPerspectiveImage(image, srcPoints: srcPoints.map { NSValue(cgPoint: $0) }, dstPoints: dstPoints.map { NSValue(cgPoint: $0)})
+//                        selectedImage = warpedImage
+//                        print("Resime warpPerspective uygulandı")
+//
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let srcPoints: [NSValue] = [
+//                            NSValue(cgPoint: CGPoint(x: 200, y: 200)),
+//                            NSValue(cgPoint: CGPoint(x: image.size.width, y: 300)),
+//                            NSValue(cgPoint: CGPoint(x: image.size.width, y: image.size.height)),
+//                            NSValue(cgPoint: CGPoint(x: 250, y: image.size.height))
+//                        ]
+//                        let dtsPoints: [NSValue] = [
+//                            NSValue(cgPoint: CGPoint(x: 600, y: 600)),
+//                            NSValue(cgPoint: CGPoint(x: image.size.width, y: 900)),
+//                            NSValue(cgPoint: CGPoint(x: image.size.width, y: image.size.height)),
+//                            NSValue(cgPoint: CGPoint(x: 700, y: image.size.height))
+//                            ]
+//                        
+//                        let warpedImage = Opencv.warpPerspectiveImage(image, srcPoints: srcPoints, dstPoints: dtsPoints)
+//                        selectedImage = warpedImage
+//                        print("Resime warpPerspective uygulandı")    
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let transposedImage = Opencv.transposeImage(image)
+//                        selectedImage = transposedImage
+//                        print("Transpose işlemi uygulandı")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let kernelSize = CGSize(width: 15, height: 15)
+//                        let sigma = 5.0
+//                        let blurredImage = Opencv.gaussianBlur(image, withKernelSize: kernelSize, sigma: sigma)
+//                        selectedImage = blurredImage
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let kernelSize = 15
+//                        let medianblurImage = Opencv.medianBlur(image, withKernelSize: Int32(kernelSize))
+//                        selectedImage = medianblurImage
+//                    }
+                    
+//                    if let image = selectedImage { // UIImage olarak yükleme
+//                        let kernelSize = CGSize(width: 15, height: 15)
+//                        let blurredImage = Opencv.blur(image, withKernelSize: kernelSize)
+//                        selectedImage = blurredImage
+//                        print("Resime blur eklendi")
+//                    }
+                    
+//                    if let image = selectedImage {
+//                        let bilateralFilter = Opencv.applyBilateralFilter(to: image, diameter: 50, sigmaColor: 250, sigmaSpace: 250)
+//                        selectedImage = bilateralFilter
+//                    }
+//
+//                    if let image = selectedImage {
+//                        let kernel: [[NSNumber]] = [
+//                                                [0, -1, 0],
+//                                                [-1, 5, -1],
+//                                                [0, -1, 0]
+//                                            ]
+//                        let filter2D = Opencv.applyFilter2D(to: image, kernel: kernel)
+//                        selectedImage = filter2D
+//                    }
+                    
                     print("Üçüncü buton tıklandı")
                 }) {
                     Text("Buton 3")
@@ -87,7 +266,6 @@ struct ContentView: View {
             .padding()
         }
     }
-    
     // Galeri izni kontrolü ve izin isteme
     func checkPhotoLibraryPermission() {
         let status = PHPhotoLibrary.authorizationStatus()
@@ -113,6 +291,25 @@ struct ContentView: View {
             break
         }
     }
+//    // Görüntüyü kaydetme işlemi
+//    func saveImage() {
+//        if let uiImage = selectedImage {
+//            // Belgeler dizinine kaydedilecek dosya yolu
+//            if let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first {
+//                let filePath = documentsDirectory.appendingPathComponent("outputImage.png").path
+//                
+//                // Görüntüyü Opencv ile kaydet
+//                let success = Opencv.save(uiImage, toPath: filePath)
+//                if success {
+//                    saveResult = "Image saved successfully to \(filePath)"
+//                    print("Resim kaydedildi.")
+//                } else {
+//                    saveResult = "Failed to save image"
+//                    print("Resim kaydedilmedi.")
+//                }
+//            }
+//        }
+//    }
 }
 
 struct PhotoPicker: UIViewControllerRepresentable {
@@ -147,10 +344,28 @@ struct PhotoPicker: UIViewControllerRepresentable {
                     if let image = image as? UIImage {
                         DispatchQueue.main.async {
                             self.parent.selectedImage = image
+                            if let uiImage = image as? UIImage {
+                                let imagePath = self.saveImageToTemporaryDirectory(image: uiImage)
+                                self.parent.selectedImage = Opencv.loadImage(imagePath ?? "")
+                            }
                         }
                     }
                 }
+                
             }
         }
+        func saveImageToTemporaryDirectory(image: UIImage) -> String {
+           let imageData = image.pngData() // UIImage'ı PNG veri formatına dönüştür.
+           let tempDirectory = FileManager.default.temporaryDirectory // Geçici dizini al.
+           let imageURL = tempDirectory.appendingPathComponent(UUID().uuidString + ".png") // Geçici dizine benzersiz bir adla dosya oluştur.
+           try? imageData?.write(to: imageURL) // PNG verisini dosyaya yaz.
+            print(imageURL.path)
+           return imageURL.path // Dosya yolunu döner.
+       }
+        
+        
     }
+    
+  
+
 }
