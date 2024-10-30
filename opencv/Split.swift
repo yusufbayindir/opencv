@@ -9,7 +9,7 @@ import SwiftUI
 
 import SwiftUI
 
-struct split: View {
+struct Split: View {
     @State private var splitImages: [UIImage] = []
     private let imageSplitter = Opencv()
     
