@@ -59,11 +59,17 @@ cv::Mat makeBorderWithImage(const cv::Mat &inputImage, int top, int bottom, int 
     return borderedImage;
 }
 
-cv::Mat processAndShowImage(const cv::Mat &inputImage) {
-    cv::Mat processedImage;
-    cv::cvtColor(inputImage, processedImage, cv::COLOR_BGR2GRAY);
-    return processedImage;
+//cv::Mat processAndShowImage(const cv::Mat &inputImage) {
+//    cv::Mat processedImage;
+//    cv::cvtColor(inputImage, processedImage, cv::COLOR_BGR2GRAY);
+//    return processedImage;
+//}
+
+//void showImageCPP(const std::vector<uint8_t> &imageData, int width, int height, const std::string &windowName) { cv::Mat image(height, width, CV_8UC3, (void *)imageData.data()); cv::imshow(windowName, image); cv::waitKey(1); // Görüntünün ekranda kalmasını sağlamak için
+//}
+void showImageCPP(const std::vector<uint8_t>& imageData, int width, int height, const std::string &windowName) { cv::Mat image(height, width, CV_8UC3, (void*)imageData.data()); cv::imshow(windowName, image); cv::waitKey(1); // Görüntünün ekranda kalmasını sağlamak için
 }
+
 
 cv::Mat flipImage(const cv::Mat &inputImage, int flipCode) {
     cv::Mat flippedImage;
@@ -846,17 +852,22 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
 }
 
-+ (UIImage *)processAndShowImage:(UIImage *)image {
-    // UIImage'i cv::Mat formatına çevir
-    cv::Mat matImage;
-    [self UIImageToMat:image mat:matImage];
-    
-    // C++ işlem fonksiyonunu çağırarak görüntüyü gri tonlamaya çevir
-    cv::Mat processedImage = processAndShowImage(matImage);
-    
-    // İşlenmiş cv::Mat görüntüyü UIImage formatına çevir ve döndür
-    return [self MatToUIImage:processedImage];
-}
+//+ (UIImage *)processAndShowImage:(UIImage *)image {
+//    // UIImage'i cv::Mat formatına çevir
+//    cv::Mat matImage;
+//    [self UIImageToMat:image mat:matImage];
+//    
+//    // C++ işlem fonksiyonunu çağırarak görüntüyü gri tonlamaya çevir
+//    cv::Mat processedImage = processAndShowImage(matImage);
+//    
+//    // İşlenmiş cv::Mat görüntüyü UIImage formatına çevir ve döndür
+//    return [self MatToUIImage:processedImage];
+//}
+
+//+ (void)showImage:(NSArray<NSNumber *> *)imageData width:(int)width height:(int)height windowName:(NSString *)windowName { std::vector<uint8_t> imageVector; for (NSNumber *number in imageData) { imageVector.push_back([number unsignedCharValue]); } showImageCPP(imageVector, width, height, [windowName UTF8String]); }
+
++ (void)showImage:(NSArray<NSNumber *> *)imageData width:(int)width height:(int)height windowName:(NSString *)windowName { std::vector<uint8_t> imageVector; for (NSNumber *number in imageData) { imageVector.push_back([number unsignedCharValue]); } showImageCPP(imageVector, width, height, [windowName UTF8String]); }
+
 
 + (UIImage *)resizeAndGrayColor:(UIImage *)image
                          toSize:(CGSize)size {

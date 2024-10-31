@@ -21,7 +21,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void)saveImageToGallery:(UIImage *)image;
 
-+ (UIImage *)processAndShowImage:(UIImage *)image;
+//+ (void)showImage:(NSArray<NSNumber *> *)imageData width:(int)width height:(int)height windowName:(NSString *)windowName;
+//+ (NSArray<NSNumber *> *)processImage:(NSArray<NSNumber *> *)imageData width:(int)width height:(int)height;
++ (void)showImage:(NSArray<NSNumber *> *)imageData width:(int)width height:(int)height windowName:(NSString *)windowName;
 
 // resize ve gray color işlemini yapar.
 + (UIImage *)resizeAndGrayColor:(UIImage *)image
