@@ -59,17 +59,11 @@ cv::Mat makeBorderWithImage(const cv::Mat &inputImage, int top, int bottom, int 
     return borderedImage;
 }
 
-//cv::Mat processAndShowImage(const cv::Mat &inputImage) {
-//    cv::Mat processedImage;
-//    cv::cvtColor(inputImage, processedImage, cv::COLOR_BGR2GRAY);
-//    return processedImage;
-//}
-
-//void showImageCPP(const std::vector<uint8_t> &imageData, int width, int height, const std::string &windowName) { cv::Mat image(height, width, CV_8UC3, (void *)imageData.data()); cv::imshow(windowName, image); cv::waitKey(1); // Görüntünün ekranda kalmasını sağlamak için
-//}
-void showImageCPP(const std::vector<uint8_t>& imageData, int width, int height, const std::string &windowName) { cv::Mat image(height, width, CV_8UC3, (void*)imageData.data()); cv::imshow(windowName, image); cv::waitKey(1); // Görüntünün ekranda kalmasını sağlamak için
+cv::Mat processAndShowImage(const cv::Mat &inputImage) {
+    cv::Mat processedImage;
+    cv::cvtColor(inputImage, processedImage, cv::COLOR_BGR2GRAY);
+    return processedImage;
 }
-
 
 cv::Mat flipImage(const cv::Mat &inputImage, int flipCode) {
     cv::Mat flippedImage;
@@ -81,6 +75,12 @@ cv::Mat bitwiseAndWithImage1(const cv::Mat &image1, const cv::Mat &image2) {
     cv::Mat dstMat;
     cv::bitwise_and(image1, image2, dstMat);
     return dstMat;
+}
+
+cv::Mat bitwiseOrImage(const cv::Mat& matImage1, const cv::Mat& matImage2) {
+    cv::Mat result;
+    cv::bitwise_or(matImage1, matImage2, result);
+    return result;
 }
 
 cv::Mat bitwiseNotWithImage(const cv::Mat &inputImage) {
@@ -101,11 +101,16 @@ std::vector<cv::Mat> splitImage(const cv::Mat &inputImage) {
     return channels;
 }
 
-cv::Mat mergeWithChannel1(const cv::Mat &channel1, const cv::Mat &channel2, const cv::Mat &channel3) {
-    std::vector<cv::Mat> channels = {channel1, channel2, channel3};
-    cv::Mat mergedMat;
-    cv::merge(channels, mergedMat);
-    return mergedMat;
+cv::Mat mergeChannels(const cv::Mat& matR, const cv::Mat& matG, const cv::Mat& matB) {
+    cv::Mat grayR, grayG, grayB;
+    cv::cvtColor(matR, grayR, cv::COLOR_RGBA2GRAY);
+    cv::cvtColor(matG, grayG, cv::COLOR_RGBA2GRAY);
+    cv::cvtColor(matB, grayB, cv::COLOR_RGBA2GRAY);
+    
+    std::vector<cv::Mat> channels = { grayB, grayG, grayR };
+    cv::Mat mergedImage;
+    cv::merge(channels, mergedImage);
+    return mergedImage;
 }
 
 // 2-Geometric Transformations
@@ -164,12 +169,25 @@ cv::Mat applyPerspectiveTransform(const cv::Mat& inputImage, const std::vector<c
     return transformedImage;
 }
 
-cv::Mat remapImage(const cv::Mat& image, const cv::Mat& mapX, const cv::Mat& mapY, int interpolation) {
-    cv::Mat remappedImage;
-    cv::remap(image, remappedImage, mapX, mapY, interpolation);
-    return remappedImage;
-}
+cv::Mat remapImage(const cv::Mat& srcMat) {
+    // Haritalama matrislerini oluştur
+    cv::Mat mapX, mapY;
+    mapX.create(srcMat.size(), CV_32FC1);
+    mapY.create(srcMat.size(), CV_32FC1);
 
+    // Haritalama matrislerini doldur (ters yansıma)
+    for (int y = 0; y < srcMat.rows; y++) {
+        for (int x = 0; x < srcMat.cols; x++) {
+            mapX.at<float>(y, x) = x;
+            mapY.at<float>(y, x) = srcMat.rows - y - 1;
+        }
+    }
+
+    // Remap işlemini uygula
+    cv::Mat dstMat;
+    cv::remap(srcMat, dstMat, mapX, mapY, cv::INTER_LINEAR);
+    return dstMat;
+}
 cv::Mat transposeImage(const cv::Mat& inputImage) {
     cv::Mat transposedImage;
     cv::transpose(inputImage, transposedImage);
@@ -277,39 +295,10 @@ cv::Mat applyCannyToImage(const cv::Mat& inputImage, double threshold1, double t
     
     return edges;
 }
-
-cv::Mat applySobelFilter(const cv::Mat& image, int dx, int dy, int kernelSize) {
-    if (image.empty()) {
-        NSLog(@"Error: Input image is empty");
-        return cv::Mat();
-    }
-
-    cv::Mat grayImage, gradImage;
-
-    // Eğer görüntü renkli ise gri tonlamaya çevir
-    if (image.channels() == 3) {
-        cv::cvtColor(image, grayImage, cv::COLOR_BGR2GRAY);
-    } else {
-        grayImage = image.clone();
-    }
-
-    // Sobel filtresini uygula
-    cv::Sobel(grayImage, gradImage, CV_64F, dx, dy, kernelSize);
-
-    // CV_64F -> CV_8UC1 dönüştür
-    cv::Mat absGradImage;
-    cv::convertScaleAbs(gradImage, absGradImage);
-
-    if (absGradImage.empty()) {
-        NSLog(@"Error: Sobel filtered image is empty");
-        return cv::Mat();
-    }
-
-    // Sonucu RGBA formatına çevir
-    cv::Mat resultImage;
-    cv::cvtColor(absGradImage, resultImage, cv::COLOR_GRAY2RGBA);
-
-    return resultImage;
+cv::Mat applySobelFilterToImage(const cv::Mat &grayImage, int ddepth, int dx, int dy, int ksize) {
+    cv::Mat sobelImage;
+    cv::Sobel(grayImage, sobelImage, ddepth, dx, dy, ksize);
+    return sobelImage;
 }
 
 cv::Mat laplacianWithImage(const cv::Mat& inputImage, int kernelSize) {
@@ -323,9 +312,9 @@ cv::Mat laplacianWithImage(const cv::Mat& inputImage, int kernelSize) {
     return absDstMat;
 }
 
-cv::Mat inRangeWithImage(const cv::Mat &inputMat, const cv::Scalar &lower, const cv::Scalar &upper) {
+cv::Mat inRangeWithImage(const cv::Mat& image, const cv::Scalar& lower, const cv::Scalar& upper) {
     cv::Mat mask;
-    cv::inRange(inputMat, lower, upper, mask);
+    cv::inRange(image, lower, upper, mask);
     return mask;
 }
 
@@ -452,8 +441,15 @@ cv::Mat applyMorphologyEx(const cv::Mat& image, int operation, int kernelSize) {
     return result;
 }
 
-cv::Mat getStructuringElementWithType(int type, int kernelSize) {
-    return cv::getStructuringElement(type, cv::Size(kernelSize, kernelSize));
+NSArray<NSNumber *> *getStructuringElementWithShape(int shape, CGSize size) {
+    cv::Mat element = cv::getStructuringElement(shape, cv::Size(size.width, size.height));
+    NSMutableArray<NSNumber *> *array = [NSMutableArray array];
+    for (int i = 0; i < element.rows; i++) {
+        for (int j = 0; j < element.cols; j++) {
+            [array addObject:@(element.at<uchar>(i, j))];
+        }
+    }
+    return array;
 }
 
 // 7-Image Contours and Shape Analysis
@@ -655,26 +651,19 @@ cv::Mat calculateOpticalFlowPyrLKFromImage(const cv::Mat& prevImage, const cv::M
     return outputImage; // Çizilmiş görüntüyü döndür
 }
 
-cv::Mat calculateMotionGradientFromImage(const cv::Mat& image) {
-    // Gri tonlamaya çevir
+cv::Mat calculateMotionGradientCPP(const cv::Mat &mat) {
     cv::Mat gray;
-    cv::cvtColor(image, gray, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(mat, gray, cv::COLOR_BGR2GRAY);
     
-    // Hareket gradyanı hesapla
-    cv::Mat flow, magnitude;
-    cv::calcOpticalFlowFarneback(gray, gray, flow, 0.5, 3, 15, 3, 5, 1.2, 0);
+    cv::Mat gradX, gradY;
+    cv::Sobel(gray, gradX, CV_32F, 1, 0, 3);
+    cv::Sobel(gray, gradY, CV_32F, 0, 1, 3);
     
-    // Akışın büyüklüğünü hesapla
-    cv::magnitude(flow(cv::Rect(0, 0, flow.cols, flow.rows)).at<float>(0,0),
-                  flow(cv::Rect(0, 0, flow.cols, flow.rows)).at<float>(1,0),
-                  magnitude);
-    
-    // Sonuç görüntüsünü normalize et
+    cv::Mat magnitude, angle;
+    cv::cartToPolar(gradX, gradY, magnitude, angle, true);
     cv::normalize(magnitude, magnitude, 0, 255, cv::NORM_MINMAX);
-    cv::Mat outputImage;
-    magnitude.convertTo(outputImage, CV_8U);
-    
-    return outputImage; // Normalize edilmiş görüntüyü döndür
+    magnitude.convertTo(magnitude, CV_8U);
+    return magnitude;
 }
 
 double calculateGlobalOrientationFromImage(const cv::Mat& image) {
@@ -730,10 +719,76 @@ double calibrateCameraWithObjectPoints(const std::vector<std::vector<cv::Point3f
     return rms;
 }
 
-void undistortImage(const cv::Mat& inputImage, cv::Mat& outputImage,
-                    const cv::Mat& cameraMatrix, const cv::Mat& distCoeffs) {
-    // Görüntüyü düzelt
-    cv::undistort(inputImage, outputImage, cameraMatrix, distCoeffs);
+
+// RGB Piksel dizisini cv::Mat'e dönüştürme
+cv::Mat arrayToMat(NSArray<NSNumber *> *array, int rows, int cols) {
+    cv::Mat mat(rows, cols, CV_8UC3); // Her piksel için 3 kanal (BGR), 8-bit
+
+    int index = 0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols * 3; j += 3) { // Her piksel 3 kanal (BGR) içerir
+            mat.at<cv::Vec3b>(i, j / 3) = cv::Vec3b(
+                (uchar)[array[index++] unsignedCharValue],
+                (uchar)[array[index++] unsignedCharValue],
+                (uchar)[array[index++] unsignedCharValue]
+            );
+        }
+    }
+    return mat;
+}
+
+// Double değerlerden oluşan bir diziyi cv::Mat'e dönüştürme
+cv::Mat arrayToDoubleMat(NSArray<NSNumber *> *array, int rows, int cols) {
+    cv::Mat mat(rows, cols, CV_64F); // Çift hassasiyetli matris
+
+    int index = 0;
+    for (int i = 0; i < rows; i++) {
+        for (int j = 0; j < cols; j++) {
+            mat.at<double>(i, j) = [array[index++] doubleValue];
+        }
+    }
+    return mat;
+}
+
+// cv::Mat'i NSArray<NSNumber *> formatına dönüştürme
+NSArray<NSNumber *> *matToArray(const cv::Mat &mat) {
+    NSMutableArray<NSNumber *> *array = [NSMutableArray array];
+
+    for (int i = 0; i < mat.rows; i++) {
+        for (int j = 0; j < mat.cols; j++) {
+            cv::Vec3b pixel = mat.at<cv::Vec3b>(i, j);
+            [array addObject:@(pixel[0])]; // B
+            [array addObject:@(pixel[1])]; // G
+            [array addObject:@(pixel[2])]; // R
+        }
+    }
+    return array;
+}
+
+// Görüntüyü düzelten (undistort) işlev
+NSArray<NSNumber *> *undistortWithImage(const std::vector<uint8_t> &imageData, cv::Size imageSize, const std::vector<double> &cameraMatrixData, const std::vector<double> &distCoeffsData) {
+    // Görüntü verisini cv::Mat formatına dönüştürme
+    cv::Mat imageMat(imageSize, CV_8UC3, (void*)imageData.data());
+
+    // Kamera matrisi ve distorsiyon katsayılarını cv::Mat'e dönüştürme
+    cv::Mat cameraMatrix = cv::Mat(3, 3, CV_64F, (void*)cameraMatrixData.data());
+    cv::Mat distCoeffs = cv::Mat(distCoeffsData.size(), 1, CV_64F, (void*)distCoeffsData.data());
+
+    // Görüntüyü düzeltilmiş bir cv::Mat'e yaz
+    cv::Mat undistortedImage;
+    cv::undistort(imageMat, undistortedImage, cameraMatrix, distCoeffs);
+
+    // Sonucu NSMutableArray'e ekleyerek geri dön
+    NSMutableArray<NSNumber *> *result = [NSMutableArray array];
+    for (int i = 0; i < undistortedImage.rows; i++) {
+        for (int j = 0; j < undistortedImage.cols; j++) {
+            cv::Vec3b pixel = undistortedImage.at<cv::Vec3b>(i, j);
+            [result addObject:@(pixel[0])]; // B
+            [result addObject:@(pixel[1])]; // G
+            [result addObject:@(pixel[2])]; // R
+        }
+    }
+    return result;
 }
 
 bool solvePnPWithObjectPoints(const std::vector<cv::Point3f>& objPoints,
@@ -852,22 +907,17 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     UIImageWriteToSavedPhotosAlbum(image, nil, nil, nil);
 }
 
-//+ (UIImage *)processAndShowImage:(UIImage *)image {
-//    // UIImage'i cv::Mat formatına çevir
-//    cv::Mat matImage;
-//    [self UIImageToMat:image mat:matImage];
-//    
-//    // C++ işlem fonksiyonunu çağırarak görüntüyü gri tonlamaya çevir
-//    cv::Mat processedImage = processAndShowImage(matImage);
-//    
-//    // İşlenmiş cv::Mat görüntüyü UIImage formatına çevir ve döndür
-//    return [self MatToUIImage:processedImage];
-//}
-
-//+ (void)showImage:(NSArray<NSNumber *> *)imageData width:(int)width height:(int)height windowName:(NSString *)windowName { std::vector<uint8_t> imageVector; for (NSNumber *number in imageData) { imageVector.push_back([number unsignedCharValue]); } showImageCPP(imageVector, width, height, [windowName UTF8String]); }
-
-+ (void)showImage:(NSArray<NSNumber *> *)imageData width:(int)width height:(int)height windowName:(NSString *)windowName { std::vector<uint8_t> imageVector; for (NSNumber *number in imageData) { imageVector.push_back([number unsignedCharValue]); } showImageCPP(imageVector, width, height, [windowName UTF8String]); }
-
++ (UIImage *)processAndShowImage:(UIImage *)image {
+    // UIImage'i cv::Mat formatına çevir
+    cv::Mat matImage;
+    [self UIImageToMat:image mat:matImage];
+    
+    // C++ işlem fonksiyonunu çağırarak görüntüyü gri tonlamaya çevir
+    cv::Mat processedImage = processAndShowImage(matImage);
+    
+    // İşlenmiş cv::Mat görüntüyü UIImage formatına çevir ve döndür
+    return [self MatToUIImage:processedImage];
+}
 
 + (UIImage *)resizeAndGrayColor:(UIImage *)image
                          toSize:(CGSize)size {
@@ -939,6 +989,18 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     return [self MatToUIImage:dstMat];
 }
 
++ (UIImage *)bitwiseOrImage:(UIImage *)image1
+                  withImage:(UIImage *)image2{
+    cv::Mat matImage1, matImage2;
+    [self UIImageToMat:image1 mat:matImage1];
+    [self UIImageToMat:image2 mat:matImage2];
+    
+    // C++ fonksiyonunu çağır
+    cv::Mat result = bitwiseOrImage(matImage1, matImage2);
+    
+    return [self MatToUIImage:result];
+}
+
 + (UIImage *)bitwiseNotWithImage:(UIImage *)image {
     // UIImage'ı cv::Mat'e dönüştür
     cv::Mat srcMat;
@@ -989,28 +1051,19 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     return resultImages;
 }
 
-+ (UIImage *)mergeWithChannel1:(UIImage *)channel1
-                      channel2:(UIImage *)channel2
-                      channel3:(UIImage *)channel3 {
-    // Her kanalı cv::Mat'e dönüştürme
-    cv::Mat mat1, mat2, mat3;
-    [self UIImageToMat:channel1 mat:mat1];
-    [self UIImageToMat:channel2 mat:mat2];
-    [self UIImageToMat:channel3 mat:mat3];
++ (UIImage *)mergeChannels:(UIImage *)imageR
+                         G:(UIImage *)imageG
+                         B:(UIImage *)imageB {
+    cv::Mat matR, matG, matB;
+    [self UIImageToMat:imageR mat:matR];
+    [self UIImageToMat:imageG mat:matG];
+    [self UIImageToMat:imageB mat:matB];
     
-    // Her kanalın aynı boyutta olup olmadığını kontrol et
-    if (mat1.size() != mat2.size() || mat2.size() != mat3.size()) {
-        NSLog(@"Error: All channels must be of the same size for merging.");
-        return nil;
-    }
-    
-    // C++ fonksiyonunu çağırarak kanalları birleştir
-    cv::Mat mergedMat = mergeWithChannel1(mat1, mat2, mat3);
-    
-    // Sonucu UIImage'a dönüştür
-    return [self MatToUIImage:mergedMat];
+    // C++ fonksiyonunu çağır
+    cv::Mat mergedImage = mergeChannels(matR, matG, matB);
+    return [self MatToUIImage:mergedImage];
 }
-
+    
 // 2-Geometric Transformations
 
 + (UIImage *)rotateImage:(UIImage *)image center:(CGPoint)center angle:(double)angle scale:(double)scale {
@@ -1129,31 +1182,21 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     return [self MatToUIImage:transformedImage];
 }
 
-+ (UIImage *)remapImage:(UIImage *)image
-               withMapX:(NSArray<NSArray<NSNumber *> *> *)mapX
-                   mapY:(NSArray<NSArray<NSNumber *> *> *)mapY
-          interpolation:(int)interpolation {
-    
-    cv::Mat matImage;
-    [self UIImageToMat:image mat:matImage];
-    
-    int rows = (int)mapX.count;
-    int cols = (int)[mapX[0] count];
-    cv::Mat mapXMat(rows, cols, CV_32F);
-    cv::Mat mapYMat(rows, cols, CV_32F);
-    
-    for (int i = 0; i < rows; ++i) {
-        for (int j = 0; j < cols; ++j) {
-            mapXMat.at<float>(i, j) = [mapX[i][j] floatValue];
-            mapYMat.at<float>(i, j) = [mapY[i][j] floatValue];
-        }
-    }
-    
-    cv::Mat remappedImage = remapImage(matImage, mapXMat, mapYMat, interpolation);
-    
-    return [self MatToUIImage:remappedImage];
-}
++ (UIImage *)remapImage:(UIImage *)image {
+    cv::Mat srcMat;
+    [self UIImageToMat:image mat:srcMat];
 
+    if (srcMat.empty()) {
+        NSLog(@"Hata: Görüntü cv::Mat'e dönüştürülürken boş çıktı.");
+        return nil;
+    }
+
+    // C++ fonksiyonunu çağırarak remap işlemini uygula
+    cv::Mat dstMat = remapImage(srcMat);
+
+    // Sonucu UIImage olarak döndür
+    return [self MatToUIImage:dstMat];
+}
 
 + (UIImage *)transposeImage:(UIImage *)image {
     // UIImage'dan cv::Mat'e dönüşüm
@@ -1219,11 +1262,10 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     return [self MatToUIImage:dstMat];
 }
 
-+ (void)resizeWindowWithName:(NSString *)windowName width:(int)width height:(int)height {
-    std::string windowNameStr = [windowName UTF8String];
-    
-    // C++ fonksiyonunu çağır
-    resizeWindowWithName(windowNameStr, width, height);
++ (void)resizeWindowWithName:(NSString *)windowName
+                       width:(int)width
+                      height:(int)height {
+    resizeWindowWithName([windowName UTF8String], width, height);
 }
 
 // 3-Drawing Functions
@@ -1535,22 +1577,17 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     return [self MatToUIImage:edges];
 }
 
-+ (UIImage *)applySobelToUIImage:(UIImage *)image
-                              dx:(int)dx
-                              dy:(int)dy
-                      kernelSize:(int)kernelSize {
-    // UIImage -> cv::Mat dönüştürme
-    cv::Mat cvImage = [self cvMatFromUIImage:image];
-    
-    // Sobel filtresini uygula
-    cv::Mat resultImage = applySobelFilter(cvImage, dx, dy, kernelSize);
-    if (resultImage.empty()) {
-        NSLog(@"Error: Resulting cv::Mat is empty after Sobel filter");
-        return nil;
-    }
-    
-    // Sonuç olarak işlenmiş cv::Mat'i tekrar UIImage'a dönüştür
-    return [self UIImageFromCVMat:resultImage];
++ (UIImage *)applySobelFilterToImage:(UIImage *)image ddepth:(int)ddepth dx:(int)dx dy:(int)dy ksize:(int)ksize {
+    cv::Mat matImage;
+    [self UIImageToMat:image mat:matImage];
+
+    cv::Mat grayImage;
+    cv::cvtColor(matImage, grayImage, cv::COLOR_BGR2GRAY);
+
+    // C++ fonksiyonunu çağırarak Sobel filtresini uygulayın
+    cv::Mat sobelImage = applySobelFilterToImage(grayImage, ddepth, dx, dy, ksize);
+
+    return [self MatToUIImage:sobelImage];
 }
 
 + (nullable UIImage *)laplacianWithImage:(UIImage *)image kernelSize:(int)kernelSize {
@@ -1575,19 +1612,28 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     
     if (mat.empty()) {
         NSLog(@"Hata: Görüntü cv::Mat'e dönüştürülürken boş çıktı.");
-        return nil; // Geçerli bir UIImage döndüremeyeceğinden nil döndürün
+        return nil;
     }
+
+    // RGB formatından BGR'ye dönüştürme
+    cv::Mat bgrMat;
+    cv::cvtColor(mat, bgrMat, cv::COLOR_RGB2BGR);
     
-    // Alt ve üst sınırları ayarlayın
+    // Alt ve üst sınırları ayarla
     cv::Scalar lowerScalar([lower[0] doubleValue], [lower[1] doubleValue], [lower[2] doubleValue]);
     cv::Scalar upperScalar([upper[0] doubleValue], [upper[1] doubleValue], [upper[2] doubleValue]);
     
-    // Mask oluşturmak için cv::inRange kullanın
-    cv::Mat mask;
-    cv::inRange(mat, lowerScalar, upperScalar, mask);
+    // C++ fonksiyonunu çağırarak maskeyi oluştur
+    cv::Mat mask = inRangeWithImage(bgrMat, lowerScalar, upperScalar);
+
+    // Maskeyi RGB formatına dönüştür
+    cv::Mat colorMask;
+    cv::cvtColor(mask, colorMask, cv::COLOR_GRAY2RGB);
     
-    // Maskeyi UIImage'ye dönüştürüp döndürün
-    return [self UIImageFromCVMat:mask];
+    // Maskeyi UIImage formatına dönüştür ve döndür
+    UIImage *resultImage = [self UIImageFromCVMat:colorMask];
+    
+    return resultImage;
 }
 
 + (NSArray<NSValue *> *)findNonZeroWithImage:(UIImage *)image {
@@ -1845,17 +1891,9 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     return MatToUIImage(result);
 }
 
-+ (UIImage *)getStructuringElementWithType:(ElementType)type kernelSize:(int)kernelSize {
-    // C++ fonksiyonunu çağırarak çekirdek oluştur
-    cv::Mat kernel = getStructuringElementWithType(type, kernelSize);
-    
-    // Kernel'i görüntü olarak döndür
-    cv::Mat kernelImage;
-    cv::normalize(kernel, kernelImage, 0, 255, cv::NORM_MINMAX);
-    kernelImage.convertTo(kernelImage, CV_8U);
-    
-    // Sonucu UIImage'a çevir ve döndür
-    return MatToUIImage(kernelImage);
++ (NSArray<NSNumber *> *)getStructuringElementWithShape:(int)shape
+                                                   size:(CGSize)size {
+    return getStructuringElementWithShape(shape, size);
 }
 
 // 7-Image Contours and Shape Analysis
@@ -2548,16 +2586,10 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     return MatToUIImage(outputImage);
 }
 
-+ (UIImage *)calculateMotionGradientFromImage:(UIImage *)image {
-    // UIImage'den cv::Mat'e çevir
-    cv::Mat mat;
-    UIImageToMat(image, mat);
-    
-    // C++ fonksiyonunu çağır
-    cv::Mat outputImage = calculateMotionGradientFromImage(mat);
-    
-    // cv::Mat'ten UIImage'e çevir
-    return MatToUIImage(outputImage);
++ (UIImage *)calculateMotionGradient:(UIImage *)image {
+    cv::Mat mat = UIImageToMat(image);
+    cv::Mat magnitude = calculateMotionGradientCPP(mat);
+    return MatToUIImage(magnitude);
 }
 
 + (CGFloat)calculateGlobalOrientationFromImage:(UIImage *)image {
@@ -2641,35 +2673,37 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     return result;
 }
 
-+ (UIImage *)undistortImage:(UIImage *)image
-           withCameraMatrix:(NSArray<NSNumber *> *)cameraMatrix
-                 distCoeffs:(NSArray<NSNumber *> *)distCoeffs {
-    // UIImage'den cv::Mat'e çevir
-    cv::Mat mat;
-    UIImageToMat(image, mat);
-    
-    // Gri tonlamaya çevir
-    cv::Mat gray;
-    cv::cvtColor(mat, gray, cv::COLOR_BGR2GRAY);
-    
-    // Kamera matrisini ve distorsiyon katsayılarını al
-    cv::Mat cameraMat(3, 3, CV_64F);
-    for (int i = 0; i < 9; i++) {
-        cameraMat.at<double>(i / 3, i % 3) = [cameraMatrix[i] doubleValue];
++ (NSArray<NSNumber *> *)undistortWithImage:(NSArray<NSNumber *> *)image
+                                  imageSize:(CGSize)imageSize
+                               cameraMatrix:(NSArray<NSNumber *> *)cameraMatrix
+                                distCoeffs:(NSArray<NSNumber *> *)distCoeffs {
+    // UIImage verilerini std::vector<uint8_t> olarak hazırlayın
+    std::vector<uint8_t> imageVector;
+    for (NSNumber *number in image) {
+        imageVector.push_back([number unsignedCharValue]);
     }
-    
-    cv::Mat distCoeffsMat(1, (int)distCoeffs.count, CV_64F);
-    for (int i = 0; i < distCoeffs.count; i++) {
-        distCoeffsMat.at<double>(0, i) = [distCoeffs[i] doubleValue];
+
+    // Kamera matrisi verilerini std::vector<double> olarak hazırlayın
+    std::vector<double> cameraMatrixVector;
+    for (NSNumber *number in cameraMatrix) {
+        cameraMatrixVector.push_back([number doubleValue]);
     }
-    
-    // C++ fonksiyonunu çağır
-    cv::Mat undistorted;
-    undistortImage(gray, undistorted, cameraMat, distCoeffsMat);
-    
-    // Düzgünleştirilmiş görüntüyü UIImage'a çevir ve döndür
-    return MatToUIImage(undistorted);
+
+    // Distorsiyon katsayılarını std::vector<double> olarak hazırlayın
+    std::vector<double> distCoeffsVector;
+    for (NSNumber *number in distCoeffs) {
+        distCoeffsVector.push_back([number doubleValue]);
+    }
+
+    // undistortCPP işlevini çağır ve sonucu döndür
+    return undistortWithImage(
+        imageVector,
+        cv::Size(imageSize.width, imageSize.height),
+        cameraMatrixVector,
+        distCoeffsVector
+    );
 }
+
 
 + (NSDictionary<NSString *, NSValue *> *)solvePnPWithObjectPoints:(NSArray<NSValue *> *)objectPoints
                                                       imagePoints:(NSArray<NSValue *> *)imagePoints
@@ -3005,10 +3039,6 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
 
 
 
-
-
-
-
 //// UIImage'ı cv::Mat formatına çevirme
 //+ (cv::Mat)cvMatFromUIImage:(UIImage *)image {
 //    CGColorSpaceRef colorSpace = CGImageGetColorSpace(image.CGImage);
@@ -3118,16 +3148,19 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     size_t height = CGImageGetHeight(imageRef);
 
     // CV_8UC3 formatında cv::Mat oluştur
-    cv::Mat mat(height, width, CV_8UC3);
+    cv::Mat mat(height, width, CV_8UC4);
 
     // Renk uzayı ayarı
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     CGContextRef contextRef = CGBitmapContextCreate(mat.data,
                                                     width,
                                                     height,
                                                     8,
                                                     mat.step[0],
-                                                    CGColorSpaceCreateDeviceRGB(),
+                                                    colorSpace,
                                                     kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault);
+    CGColorSpaceRelease(colorSpace); // Renk uzayını serbest bırakın
+
 
     if (!contextRef) {
         NSLog(@"Hata: CGContext oluşturulamadı.");

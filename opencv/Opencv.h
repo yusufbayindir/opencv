@@ -21,9 +21,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (void)saveImageToGallery:(UIImage *)image;
 
-//+ (void)showImage:(NSArray<NSNumber *> *)imageData width:(int)width height:(int)height windowName:(NSString *)windowName;
-//+ (NSArray<NSNumber *> *)processImage:(NSArray<NSNumber *> *)imageData width:(int)width height:(int)height;
-+ (void)showImage:(NSArray<NSNumber *> *)imageData width:(int)width height:(int)height windowName:(NSString *)windowName;
++ (UIImage *)processAndShowImage:(UIImage *)image;
 
 // resize ve gray color işlemini yapar.
 + (UIImage *)resizeAndGrayColor:(UIImage *)image
@@ -42,7 +40,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (UIImage *)bitwiseAndWithImage1:(UIImage *)image1 image2:(UIImage *)image2;
 
-+ (UIImage *)bitwiseOrWithImage1:(UIImage *)image1 image2:(UIImage *)image2;
++ (UIImage *)bitwiseOrImage:(UIImage *)image1 withImage:(UIImage *)image2;
 
 + (UIImage *)bitwiseNotWithImage:(UIImage *)image;
 
@@ -54,9 +52,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (NSArray<UIImage *> *)splitImage:(UIImage *)image;
 
-+ (UIImage *)mergeWithChannel1:(UIImage *)channel1
-                      channel2:(UIImage *)channel2
-                      channel3:(UIImage *)channel3;
+//+ (UIImage *)mergeWithChannel1:(UIImage *)channel1
+//                      channel2:(UIImage *)channel2
+//                      channel3:(UIImage *)channel3;
++ (UIImage *)mergeChannels:(UIImage *)imageR G:(UIImage *)imageG B:(UIImage *)imageB;
 
 // 2-Geometric Transformations
 
@@ -79,10 +78,8 @@ NS_ASSUME_NONNULL_BEGIN
                              srcPoints:(NSArray<NSValue *> *)srcPoints
                              dstPoints:(NSArray<NSValue *> *)dstPoints;
 
-+ (UIImage *)remapImage:(UIImage *)image
-               withMapX:(NSArray<NSArray<NSNumber *> *> *)mapX
-                   mapY:(NSArray<NSArray<NSNumber *> *> *)mapY
-          interpolation:(int)interpolation;
++ (UIImage *)remapImage:(UIImage *)image;
+
 
 + (UIImage *)transposeImage:(UIImage *)image;
 
@@ -90,7 +87,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (nullable UIImage *)pyrDownWithImage:(UIImage *)image;
 
-+ (void)resizeWindowWithName:(NSString *)windowName width:(int)width height:(int)height;
++ (void)resizeWindowWithName:(NSString *)windowName
+                       width:(int)width
+                      height:(int)height;
 
 // 3-Drawing Functions
 
@@ -155,10 +154,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (UIImage *)applyCannyToImage:(UIImage *)image threshold1:(double)threshold1 threshold2:(double)threshold2;
 
-+ (UIImage *)applySobelToUIImage:(UIImage *)image
-                              dx:(int)dx
-                              dy:(int)dy
-                      kernelSize:(int)kernelSize;
+//+ (UIImage *)applySobelToUIImage:(UIImage *)image
+//                              dx:(int)dx
+//                              dy:(int)dy
+//                      kernelSize:(int)kernelSize;
+
++ (UIImage *)applySobelFilterToImage:(UIImage *)image ddepth:(int)ddepth dx:(int)dx dy:(int)dy ksize:(int)ksize;
 
 + (nullable UIImage *)laplacianWithImage:(UIImage *)image
                               kernelSize:(int)kernelSize;
@@ -233,8 +234,9 @@ typedef NS_ENUM(NSInteger, ElementType) {
     ElementEllipse = 2
 };
 
-+ (UIImage *)getStructuringElementWithType:(ElementType)type
-                                kernelSize:(int)kernelSize;
+//+ (UIImage *)getStructuringElementWithType:(ElementType)type
+//                                kernelSize:(int)kernelSize;
++ (NSArray<NSNumber *> *)getStructuringElementWithShape:(int)shape size:(CGSize)size;
 
 // 7-Image Contours and Shape Analysis
 
@@ -318,7 +320,7 @@ typedef NS_ENUM(NSInteger, ElementType) {
                                         toImage:(UIImage *)nextImage
                                       keypoints:(NSArray<NSValue *> *)keypoints;
 
-+ (UIImage *)calculateMotionGradientFromImage:(UIImage *)image;
++ (UIImage *)calculateMotionGradient:(UIImage *)image;
 
 + (CGFloat)calculateGlobalOrientationFromImage:(UIImage *)image;
 
@@ -331,9 +333,11 @@ typedef NS_ENUM(NSInteger, ElementType) {
                                                              imagePoints:(NSArray<NSArray<NSValue *> *> *)imagePoints
                                                                imageSize:(CGSize)imageSize;
 
-+ (UIImage *)undistortImage:(UIImage *)image
-           withCameraMatrix:(NSArray<NSNumber *> *)cameraMatrix
-                 distCoeffs:(NSArray<NSNumber *> *)distCoeffs;
+//+ (UIImage *)undistortImage:(UIImage *)image
+//           withCameraMatrix:(NSArray<NSNumber *> *)cameraMatrix
+//                 distCoeffs:(NSArray<NSNumber *> *)distCoeffs;
+
++ (NSArray<NSNumber *> *)undistortWithImage:(NSArray<NSNumber *> *)image imageSize:(CGSize)imageSize cameraMatrix:(NSArray<NSNumber *> *)cameraMatrix distCoeffs:(NSArray<NSNumber *> *)distCoeffs;
 
 + (NSDictionary<NSString *, NSValue *> *)solvePnPWithObjectPoints:(NSArray<NSValue *> *)objectPoints
                                                       imagePoints:(NSArray<NSValue *> *)imagePoints

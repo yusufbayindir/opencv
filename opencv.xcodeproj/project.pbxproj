@@ -10,9 +10,15 @@
 		A328BFEC2CC294B900AE9103 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A328BFEB2CC294B900AE9103 /* opencv2.framework */; };
 		A328BFED2CC294B900AE9103 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A328BFEB2CC294B900AE9103 /* opencv2.framework */; };
 		A328BFEE2CC294B900AE9103 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A328BFEB2CC294B900AE9103 /* opencv2.framework */; };
+		A393FB892CD3744D006E9DCF /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A393FB882CD3744D006E9DCF /* opencv2.framework */; };
+		A393FB8A2CD3744D006E9DCF /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A393FB882CD3744D006E9DCF /* opencv2.framework */; };
+		A393FB8B2CD3744D006E9DCF /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A393FB882CD3744D006E9DCF /* opencv2.framework */; };
 		A3B0EEAF2CCD50BD0076CAC2 /* izmir.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A3B0EEAE2CCD50BD0076CAC2 /* izmir.jpg */; };
 		A3B0EEB02CCD50BD0076CAC2 /* izmir.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A3B0EEAE2CCD50BD0076CAC2 /* izmir.jpg */; };
 		A3B0EEB12CCD50BD0076CAC2 /* izmir.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A3B0EEAE2CCD50BD0076CAC2 /* izmir.jpg */; };
+		FA1FF54F2CD36A34004C0B83 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA1FF54E2CD36A34004C0B83 /* opencv2.framework */; };
+		FA1FF5502CD36A34004C0B83 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA1FF54E2CD36A34004C0B83 /* opencv2.framework */; };
+		FA1FF5512CD36A34004C0B83 /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA1FF54E2CD36A34004C0B83 /* opencv2.framework */; };
 		FA84AE012CC277B000C3743F /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA84AE002CC277B000C3743F /* opencv2.framework */; };
 		FA84AE022CC277B000C3743F /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA84AE002CC277B000C3743F /* opencv2.framework */; };
 		FA84AE032CC277B000C3743F /* opencv2.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FA84AE002CC277B000C3743F /* opencv2.framework */; };
@@ -37,7 +43,9 @@
 
 /* Begin PBXFileReference section */
 		A328BFEB2CC294B900AE9103 /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = opencv2.framework; sourceTree = "<group>"; };
+		A393FB882CD3744D006E9DCF /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = opencv2.framework; sourceTree = "<group>"; };
 		A3B0EEAE2CCD50BD0076CAC2 /* izmir.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = izmir.jpg; sourceTree = "<group>"; };
+		FA1FF54E2CD36A34004C0B83 /* opencv2.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = opencv2.framework; sourceTree = "<group>"; };
 		FA84ADC72CC275BB00C3743F /* opencv.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = opencv.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA84ADD72CC275BC00C3743F /* opencvTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = opencvTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		FA84ADE12CC275BC00C3743F /* opencvUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = opencvUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -67,7 +75,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA1FF5502CD36A34004C0B83 /* opencv2.framework in Frameworks */,
 				A328BFEE2CC294B900AE9103 /* opencv2.framework in Frameworks */,
+				A393FB892CD3744D006E9DCF /* opencv2.framework in Frameworks */,
 				FA84AE032CC277B000C3743F /* opencv2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -76,7 +86,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA1FF5512CD36A34004C0B83 /* opencv2.framework in Frameworks */,
 				A328BFED2CC294B900AE9103 /* opencv2.framework in Frameworks */,
+				A393FB8B2CD3744D006E9DCF /* opencv2.framework in Frameworks */,
 				FA84AE012CC277B000C3743F /* opencv2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -85,7 +97,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				FA1FF54F2CD36A34004C0B83 /* opencv2.framework in Frameworks */,
 				A328BFEC2CC294B900AE9103 /* opencv2.framework in Frameworks */,
+				A393FB8A2CD3744D006E9DCF /* opencv2.framework in Frameworks */,
 				FA84AE022CC277B000C3743F /* opencv2.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -97,6 +111,8 @@
 			isa = PBXGroup;
 			children = (
 				A3B0EEAE2CCD50BD0076CAC2 /* izmir.jpg */,
+				A393FB882CD3744D006E9DCF /* opencv2.framework */,
+				FA1FF54E2CD36A34004C0B83 /* opencv2.framework */,
 				A328BFEB2CC294B900AE9103 /* opencv2.framework */,
 				FA84AE002CC277B000C3743F /* opencv2.framework */,
 				FA84ADC92CC275BB00C3743F /* opencv */,
