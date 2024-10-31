@@ -799,6 +799,23 @@ struct ContentView: View {
 //                        selectedImage = Opencv.undistortImage(image, withCameraMatrix: cameraMatrix, distCoeffs: distCoeffs)
 //                    }
                     
+//                    if let image = selectedImage {
+//                        let showim = Opencv.processAndShow(image)
+//                            selectedImage = showim
+//                            print("resim gösterildi")
+//                    }
+                    
+                    if let image = selectedImage {
+                        // Alt ve üst sınırları tanımlayın (örneğin, mavi renk aralığı)
+                        let lowerBound = [NSNumber(value: 100), NSNumber(value: 0), NSNumber(value: 0)]
+                        let upperBound = [NSNumber(value: 255), NSNumber(value: 50), NSNumber(value: 50)]
+                        
+                        let inRangeImage = Opencv.inRange(with: image, lowerBound: lowerBound, upperBound: upperBound)
+                        selectedImage = inRangeImage
+                        print("inRange işlemi uygulandı")
+                    }
+                    
+                    
                     print("Üçüncü buton tıklandı")
                 }) {
                     Text("Buton 3")

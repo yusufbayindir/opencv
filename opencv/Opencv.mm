@@ -59,7 +59,7 @@ cv::Mat makeBorderWithImage(const cv::Mat &inputImage, int top, int bottom, int 
     return borderedImage;
 }
 
-cv::Mat processImage(const cv::Mat &inputImage) {
+cv::Mat processAndShowImage(const cv::Mat &inputImage) {
     cv::Mat processedImage;
     cv::cvtColor(inputImage, processedImage, cv::COLOR_BGR2GRAY);
     return processedImage;
@@ -317,11 +317,11 @@ cv::Mat laplacianWithImage(const cv::Mat& inputImage, int kernelSize) {
     return absDstMat;
 }
 
-//cv::Mat inRangeWithImage(const cv::Mat &srcMat, const cv::Scalar &lower, const cv::Scalar &upper) {
-//    cv::Mat maskMat;
-//    cv::inRange(srcMat, lower, maskMat); // inRange işlemi
-//    return maskMat;
-//}
+cv::Mat inRangeWithImage(const cv::Mat &inputMat, const cv::Scalar &lower, const cv::Scalar &upper) {
+    cv::Mat mask;
+    cv::inRange(inputMat, lower, upper, mask);
+    return mask;
+}
 
 
 std::vector<cv::Point> findNonZeroWithImage(const cv::Mat &srcMat) {
@@ -852,7 +852,7 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     [self UIImageToMat:image mat:matImage];
     
     // C++ işlem fonksiyonunu çağırarak görüntüyü gri tonlamaya çevir
-    cv::Mat processedImage = processImage(matImage);
+    cv::Mat processedImage = processAndShowImage(matImage);
     
     // İşlenmiş cv::Mat görüntüyü UIImage formatına çevir ve döndür
     return [self MatToUIImage:processedImage];
@@ -1559,38 +1559,25 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
     return [self MatToUIImage:dstMat];
 }
 
-
-//+ (nullable UIImage *)inRangeWithImage:(UIImage *)image
-//                            lowerBound:(NSArray<NSNumber *> *)lowerBound
-//                            upperBound:(NSArray<NSNumber *> *)upperBound {
-//    // UIImage'ı cv::Mat türüne dönüştürme
-//    cv::Mat srcMat;
-//    UIImageToMat(image, srcMat);
-//
-//    if (srcMat.empty()) {
-//        NSLog(@"Error: Source image is empty.");
-//        return nil;
-//    }
-//
-//    // Lower ve upper bound dizilerini cv::Scalar türüne dönüştürme
-//    cv::Scalar lower(cv::Scalar(lowerBound[0].doubleValue, lowerBound[1].doubleValue, lowerBound[2].doubleValue));
-//    cv::Scalar upper(cv::Scalar(upperBound[0].doubleValue, upperBound[1].doubleValue, upperBound[2].doubleValue));
-//
-//    // Renk alanını HSV'ye dönüştürme
-//    cv::cvtColor(srcMat, srcMat, cv::COLOR_BGR2HSV);
-//
-//    // C++ fonksiyonunu çağırma
-//    cv::Mat maskMat = inRangeWithImage(srcMat, lower, upper);
-//
-//    // Maskeyi kaynak görüntüye uygulama
-//    cv::Mat resultMat;
-//
-//    // Burada kaynak matrisleri doğru şekilde geçirin
-//    cv::bitwise_and(srcMat, srcMat, resultMat, maskMat); // 4. parametre maske
-//
-//    // Sonucu UIImage olarak döndürme
-//    return MatToUIImage(resultMat);
-//}
++ (UIImage *)inRangeWithImage:(UIImage *)image lowerBound:(NSArray<NSNumber *> *)lower upperBound:(NSArray<NSNumber *> *)upper {
+    cv::Mat mat = [self cvMatFromUIImage:image];
+    
+    if (mat.empty()) {
+        NSLog(@"Hata: Görüntü cv::Mat'e dönüştürülürken boş çıktı.");
+        return nil; // Geçerli bir UIImage döndüremeyeceğinden nil döndürün
+    }
+    
+    // Alt ve üst sınırları ayarlayın
+    cv::Scalar lowerScalar([lower[0] doubleValue], [lower[1] doubleValue], [lower[2] doubleValue]);
+    cv::Scalar upperScalar([upper[0] doubleValue], [upper[1] doubleValue], [upper[2] doubleValue]);
+    
+    // Mask oluşturmak için cv::inRange kullanın
+    cv::Mat mask;
+    cv::inRange(mat, lowerScalar, upperScalar, mask);
+    
+    // Maskeyi UIImage'ye dönüştürüp döndürün
+    return [self UIImageFromCVMat:mask];
+}
 
 + (NSArray<NSValue *> *)findNonZeroWithImage:(UIImage *)image {
     // UIImage'ı cv::Mat türüne dönüştürme
@@ -2952,20 +2939,20 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
 
 + (UIImage *)captureFrameFromCameraIndex:(int)cameraIndex {
     cv::Mat frame = captureFrameFromCameraIndex(cameraIndex); // C++ fonksiyonunu çağır
-
+    
     if (frame.empty()) {  // Eğer çerçeve boşsa nil döner
         return nil;
     }
-
+    
     cv::cvtColor(frame, frame, cv::COLOR_BGR2RGB);  // BGR'den RGB'ye dönüştür
-
+    
     NSData *data = [NSData dataWithBytes:frame.data length:frame.elemSize() * frame.total()];
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
     CGImageRef cgImage = CGImageCreate(frame.cols, frame.rows, 8, 24, frame.step[0], colorSpace, kCGImageAlphaNone | kCGBitmapByteOrderDefault, provider, NULL, NO, kCGRenderingIntentDefault);
     
     UIImage *image = [UIImage imageWithCGImage:cgImage];
-
+    
     // Bellek yönetimi
     CGImageRelease(cgImage);
     CGDataProviderRelease(provider);
@@ -2979,7 +2966,7 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
         NSLog(@"No images to write.");
         return NO;
     }
-
+    
     std::vector<cv::Mat> matImages;
     
     for (UIImage *image in images) {
@@ -2987,7 +2974,7 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
         [self UIImageToMat:image mat:matImage];
         matImages.push_back(matImage);
     }
-
+    
     std::string cppFilePath = [filePath UTF8String];
     return writeVideoFromImages(matImages, cppFilePath, fps);
 }
@@ -3011,29 +2998,143 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
 
 
 
-// UIImage'ı cv::Mat formatına çevirme
+//// UIImage'ı cv::Mat formatına çevirme
+//+ (cv::Mat)cvMatFromUIImage:(UIImage *)image {
+//    CGColorSpaceRef colorSpace = CGImageGetColorSpace(image.CGImage);
+//    CGFloat width = image.size.width;
+//    CGFloat height = image.size.height;
+//
+//    cv::Mat cvMat(height, width, CV_8UC3); // 4 kanallı RGBA formatı
+//
+//    CGContextRef contextRef = CGBitmapContextCreate(cvMat.data, width, height, 8, cvMat.step[0], colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrderDefault);
+//
+//    if (contextRef == NULL) {
+//        NSLog(@"Error: Failed to create CGContext");
+//        return cv::Mat(); // Boş matris döndür
+//    }
+//
+//    CGContextDrawImage(contextRef, CGRectMake(0, 0, width, height), image.CGImage);
+//    CGContextRelease(contextRef);
+//
+//    // RGBA formatını BGR'ye çevir (OpenCV'nin varsayılanı BGR'dir)
+//    cv::cvtColor(cvMat, cvMat, cv::COLOR_RGBA2BGR);
+//
+//    return cvMat;
+//}
+
+//+ (cv::Mat)cvMatFromUIImage:(UIImage *)image {
+//    if (!image) {
+//        NSLog(@"Hata: Dönüştürmek için geçerli bir UIImage sağlanmadı.");
+//        return cv::Mat(); // Boş bir cv::Mat döndürür
+//    }
+//    
+//    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+//    CGFloat cols = image.size.width;
+//    CGFloat rows = image.size.height;
+//    
+//    // cv::Mat türünü CV_8UC3 yapıyoruz (RGB formatı için)
+//    cv::Mat mat(rows, cols, CV_8UC3);
+//    CGContextRef contextRef = CGBitmapContextCreate(mat.data, cols, rows, 8, mat.step[0], colorSpace, kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault);
+//    
+//    if (!contextRef) {
+//        NSLog(@"Hata: CGContext oluşturulamadı.");
+//        CGColorSpaceRelease(colorSpace);
+//        return cv::Mat(); // Boş bir cv::Mat döndürür
+//    }
+//    
+//    CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), image.CGImage);
+//    CGContextRelease(contextRef);
+//    CGColorSpaceRelease(colorSpace);
+//    
+//    if (mat.empty()) {
+//        NSLog(@"Hata: UIImage cv::Mat'e dönüştürülemedi.");
+//    }
+//    
+//    return mat;
+//}
+
+//+ (cv::Mat)cvMatFromUIImage:(UIImage *)image {
+//    if (!image) {
+//        NSLog(@"Hata: Geçersiz UIImage.");
+//        return cv::Mat();
+//    }
+//
+//    // RGB renk alanı oluşturuyoruz
+//    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+//    CGFloat width = image.size.width;
+//    CGFloat height = image.size.height;
+//
+//    // CV_8UC3 formatında (RGB) cv::Mat oluştur
+//    cv::Mat mat(height, width, CV_8UC3);
+//
+//    // Bitmap Context oluşturma
+//    CGContextRef contextRef = CGBitmapContextCreate(mat.data,
+//                                                    width,
+//                                                    height,
+//                                                    8,
+//                                                    mat.step[0],
+//                                                    colorSpace,
+//                                                    kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault);
+//
+//    CGColorSpaceRelease(colorSpace);
+//
+//    if (!contextRef) {
+//        NSLog(@"Hata: CGContext oluşturulamadı.");
+//        return cv::Mat();
+//    }
+//
+//    // Görüntüyü CGContext’e çiz
+//    CGContextDrawImage(contextRef, CGRectMake(0, 0, width, height), image.CGImage);
+//    CGContextRelease(contextRef);
+//
+//    if (mat.empty()) {
+//        NSLog(@"Hata: UIImage cv::Mat'e dönüştürülemedi.");
+//    }
+//
+//    return mat;
+//}
+
 + (cv::Mat)cvMatFromUIImage:(UIImage *)image {
-    CGColorSpaceRef colorSpace = CGImageGetColorSpace(image.CGImage);
-    CGFloat width = image.size.width;
-    CGFloat height = image.size.height;
-
-    cv::Mat cvMat(height, width, CV_8UC4); // 4 kanallı RGBA formatı
-
-    CGContextRef contextRef = CGBitmapContextCreate(cvMat.data, width, height, 8, cvMat.step[0], colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrderDefault);
-
-    if (contextRef == NULL) {
-        NSLog(@"Error: Failed to create CGContext");
-        return cv::Mat(); // Boş matris döndür
+    // UIImage'yi doğrudan CGImage'ye çevir
+    CGImageRef imageRef = image.CGImage;
+    if (!imageRef) {
+        NSLog(@"Hata: UIImage'den CGImage alınamadı.");
+        return cv::Mat();
     }
 
-    CGContextDrawImage(contextRef, CGRectMake(0, 0, width, height), image.CGImage);
+    // CGImage boyutlarını alın
+    size_t width = CGImageGetWidth(imageRef);
+    size_t height = CGImageGetHeight(imageRef);
+
+    // CV_8UC3 formatında cv::Mat oluştur
+    cv::Mat mat(height, width, CV_8UC3);
+
+    // Renk uzayı ayarı
+    CGContextRef contextRef = CGBitmapContextCreate(mat.data,
+                                                    width,
+                                                    height,
+                                                    8,
+                                                    mat.step[0],
+                                                    CGColorSpaceCreateDeviceRGB(),
+                                                    kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault);
+
+    if (!contextRef) {
+        NSLog(@"Hata: CGContext oluşturulamadı.");
+        return cv::Mat();
+    }
+
+    // Görüntüyü CGContext'e çizme
+    CGContextDrawImage(contextRef, CGRectMake(0, 0, width, height), imageRef);
     CGContextRelease(contextRef);
 
-    // RGBA formatını BGR'ye çevir (OpenCV'nin varsayılanı BGR'dir)
-    cv::cvtColor(cvMat, cvMat, cv::COLOR_RGBA2BGR);
+    if (mat.empty()) {
+        NSLog(@"Hata: UIImage cv::Mat'e dönüştürülemedi.");
+    }
 
-    return cvMat;
+    return mat;
 }
+
+
 
 
 + (UIImage *)UIImageFromCVMat:(cv::Mat)cvMat {
@@ -3041,48 +3142,48 @@ bool writeVideoFromImages(const std::vector<cv::Mat>& images, const std::string&
         NSLog(@"Error: cv::Mat is empty");
         return nil;
     }
-
+    
     // BGR -> RGBA'ya çevrilecek (OpenCV'den iOS'a uyum için)
     if (cvMat.channels() == 3) {
         cv::cvtColor(cvMat, cvMat, cv::COLOR_BGR2RGBA); // BGR'den RGBA'ya dönüşüm
     }
-
+    
     if (cvMat.type() != CV_8UC4) {
         NSLog(@"Error: Unsupported cv::Mat type after conversion: %d", cvMat.type());
         return nil;
     }
-
+    
     size_t dataLength = cvMat.elemSize() * cvMat.total();
     NSData *data = [NSData dataWithBytes:cvMat.data length:dataLength];
-
+    
     if (data == nil || data.length != dataLength) {
         NSLog(@"Error: Failed to create NSData from cv::Mat data");
         return nil;
     }
-
+    
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
-
+    
     if (provider == NULL) {
         NSLog(@"Error: Failed to create CGDataProviderRef");
         return nil;
     }
-
+    
     CGImageRef imageRef = CGImageCreate(cvMat.cols, cvMat.rows, 8, 32, cvMat.step[0], colorSpace, kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault, provider, NULL, false, kCGRenderingIntentDefault);
-
+    
     if (imageRef == NULL) {
         NSLog(@"Error: Failed to create CGImageRef");
         CGDataProviderRelease(provider);
         CGColorSpaceRelease(colorSpace);
         return nil;
     }
-
+    
     UIImage *image = [UIImage imageWithCGImage:imageRef];
-
+    
     CGImageRelease(imageRef);
     CGDataProviderRelease(provider);
     CGColorSpaceRelease(colorSpace);
-
+    
     return image;
 }
 
@@ -3091,7 +3192,7 @@ void UIImageToMat(UIImage *image, cv::Mat &mat) {
     CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
     CGFloat cols = image.size.width;
     CGFloat rows = image.size.height;
-
+    
     cv::Mat cvMat(rows, cols, CV_8UC4); // RGBA
     CGContextRef contextRef = CGBitmapContextCreate(cvMat.data, cols, rows, 8, cvMat.step[0], colorSpace, kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault);
     
@@ -3106,21 +3207,21 @@ void UIImageToMat(UIImage *image, cv::Mat &mat) {
 UIImage *MatToUIImage(const cv::Mat &mat) {
     NSData *data = [NSData dataWithBytes:mat.data length:mat.elemSize() * mat.total()];
     CGColorSpaceRef colorSpace;
-
+    
     if (mat.elemSize() == 1) {
         colorSpace = CGColorSpaceCreateDeviceGray();
     } else {
         colorSpace = CGColorSpaceCreateDeviceRGB();
     }
-
+    
     CGDataProviderRef provider = CGDataProviderCreateWithCFData((__bridge CFDataRef)data);
     CGImageRef imageRef = CGImageCreate(mat.cols, mat.rows, 8, 8 * mat.elemSize(), mat.step[0], colorSpace, kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault, provider, NULL, false, kCGRenderingIntentDefault);
     UIImage *image = [UIImage imageWithCGImage:imageRef];
-
+    
     CGImageRelease(imageRef);
     CGDataProviderRelease(provider);
     CGColorSpaceRelease(colorSpace);
-
+    
     return image;
 }
 
@@ -3131,27 +3232,28 @@ UIImage *MatToUIImage(const cv::Mat &mat) {
     
     int widthInt = (int)round(cols);
     int heightInt = (int)round(rows);
-
+    
     cv::Mat tmp(rows, cols, CV_8UC4); // RGBA formatı
     CGContextRef contextRef = CGBitmapContextCreate(tmp.data, cols, rows, 8, tmp.step[0], colorSpace, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrderDefault);
     CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), image.CGImage);
     CGContextRelease(contextRef);
-
+    
     cv::cvtColor(tmp, mat, cv::COLOR_RGBA2BGR); // RGBA'dan BGR'a dönüşüm
 }
 
 
 // resizeAndGrayColor bu olmadan çalışmıyor.
 cv::Mat UIImageToMat(UIImage *image) {
-CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
-CGFloat cols = image.size.width;
-CGFloat rows = image.size.height;
-cv::Mat mat(rows, cols, CV_8UC4); // 4 kanal (RGBA) olarak oluşturulur
-CGContextRef contextRef = CGBitmapContextCreate(mat.data, cols, rows, 8, mat.step[0], colorSpace, kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault);
-CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), image.CGImage);
-CGContextRelease(contextRef);
-CGColorSpaceRelease(colorSpace);
-return mat;
+    CGColorSpaceRef colorSpace = CGColorSpaceCreateDeviceRGB();
+    CGFloat cols = image.size.width;
+    CGFloat rows = image.size.height;
+    cv::Mat mat(rows, cols, CV_8UC4); // 4 kanal (RGBA) olarak oluşturulur
+    CGContextRef contextRef = CGBitmapContextCreate(mat.data, cols, rows, 8, mat.step[0], colorSpace, kCGImageAlphaNoneSkipLast | kCGBitmapByteOrderDefault);
+    CGContextDrawImage(contextRef, CGRectMake(0, 0, cols, rows), image.CGImage);
+    CGContextRelease(contextRef);
+    CGColorSpaceRelease(colorSpace);
+    return mat;
 }
+
 
 @end

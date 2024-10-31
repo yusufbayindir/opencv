@@ -160,13 +160,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 + (nullable UIImage *)laplacianWithImage:(UIImage *)image
                               kernelSize:(int)kernelSize;
-+ (UIImage *)applyInRangeToImage:(UIImage *)image
-                      lowerBound:(NSArray<NSNumber *> *)lowerBound
-                      upperBound:(NSArray<NSNumber *> *)upperBound;
 
-//+ (nullable UIImage *)inRangeWithImage:(UIImage *)image
-//                            lowerBound:(NSArray<NSNumber *> *)lowerBound
-//                            upperBound:(NSArray<NSNumber *> *)upperBound;
++ (UIImage *)inRangeWithImage:(UIImage *)image
+              lowerBound:(NSArray<NSNumber *> *)lower
+              upperBound:(NSArray<NSNumber *> *)upper;
 
 + (NSArray<NSValue *> *)findNonZeroWithImage:(UIImage *)image;
 
